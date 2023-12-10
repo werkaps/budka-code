@@ -1,0 +1,165 @@
+<!-- Strona glowna aplikacji. -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <!-- 
+		Bootstrap CSS 
+		Zrodlo: https://bootswatch.com/
+				https://github.com/thomaspark/bootswatch
+		Autor: Thomas Park
+		Licencja: MIT License 
+	 -->
+    <link href="https://bootswatch.com/5/minty/bootstrap.min.css" rel="stylesheet">
+
+	<!-- 
+		Dodanie stylow CSS dla okienka z logami z czujnikow i tekstu w okienkach
+	 -->
+	<style>
+		.logging_window{
+			display: block;
+			padding: 10px;
+			font-size: 18px;
+			word-break: break-all;
+			word-wrap: break-word;
+			background-color: #fcfceb;
+			border: 1px solid #fcebf3;
+			border-radius: 5px;
+			width: 60%;
+			height: 200px;
+			margin: auto;
+			overflow-y: scroll;
+		}
+		pre {
+			text-align: left;
+			white-space: pre-line;
+		}
+	</style>
+
+	<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+	<!-- 
+		Funkcje JavaScript wzorowane na odpowiedzi uzytkownika davidism na stronie StackOverFlow 
+ 		Zrodlo: https://stackoverflow.com/a/35541970/20901593
+		Autor: @davidism
+	 	Licencja: Creative Commons Attribution-ShareAlike (CC BY-SA) license 
+	 -->
+
+	<!-- Zwraca na zywo logi z czujnika przerwania wiazki IR -->
+	<script>
+	$(document).ready(
+		function(){
+			var beam_output = document.getElementById('beam_output');
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', '{{ url_for("beam_log") }}');
+			xhr.send();
+
+			setInterval(function() {
+			beam_output.textContent = xhr.responseText;
+			}, 500);
+		},
+	);
+	</script>
+
+	<!-- Zwraca na zywo logi z czujnika PIR -->
+	<script>
+	$(document).ready(
+		function(){
+			var PIR = document.getElementById('PIR_output');
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', '{{ url_for("PIR_log") }}');
+			xhr.send();
+
+			setInterval(function() {
+			PIR.textContent = xhr.responseText;
+			}, 500);
+		},
+	);
+	</script>
+
+	<title>NestBox</title>
+</head>
+
+<body style="background-color: #f3fceb;">
+	<div class="container">
+		<center>
+			<h1>NestBox interface</h1>
+
+			<!-- Warunek wyswietlania podgladu z kamery na zywo. -->
+
+			{% if stream_status %}
+				<h2><i>Camera stream:</i></h2>
+				<img src="livestream" width="640" height="480" />
+			{% else %}
+				<h2>Camera preview disabled.</h2>
+			{% endif %}
+			
+		</center>
+	</div>
+
+	<!-- Interfejs uzytkownika i przyciski do kontrolowania dzialania programu. -->
+	<div class="container" style="padding-top: 20px;">
+		<center>
+			<h2>Control panel:</h2>
+			<form method="post" action="/">
+				<div class="container">
+					<h3>Preview controls:</h3>
+					<input type="submit" name="toggleStream" value='{{ streamEnabled }} camera preview' class="btn btn-primary mt-1" />
+				</div>
+
+				<div class="container" style="padding-top: 10px;">
+					<h3>Capture options:</h3>
+					{% if PIRstatus == false %}
+						<input type="submit" name="photoButton" value='Take a picture' class="btn btn-primary mt-1" />
+						<input type="submit" name="recordButton" value='{{ recordingEnabled }} recording' class="btn btn-primary mt-1" />
+					{% else %}
+						<input type="submit" name="photoButton" value='Take a picture' class="btn btn-primary mt-1" disabled />
+						<input type="submit" name="recordButton" value='{{ recordingEnabled }} recording' class="btn btn-primary mt-1" disabled />
+						<p><small class="text-body-secondary">Capture options are disabled while PIR motion recording is on.</small></p>
+					{% endif %}
+					
+				</div> 
+
+				<div class="container" style="padding-top: 10px;">
+					<h3>Sensor controls:</h3>
+					<input type="submit" name="pirButton" value='{{ PIRenabled }} PIR motion recording' class="btn btn-primary mt-1" />
+					<input type="submit" name="barrierButton" value='{{ barrierEnabled }} beam sensor' class="btn btn-primary mt-1" />
+				</div>
+
+				<div class="container" style="padding-top: 10px;">
+					<p><small class="text-body-secondary">Photos and videos can be accessed in <i>~/captured/</i> directory.</small></p>
+				</div>
+
+			</form>
+		</center>
+	</div>
+	
+	<!-- Okienka z logami z czujnikow. -->
+	<div class="container" style="padding-top: 20px;">
+		<center>
+			<h2>Live log records:</h2>
+			<div class="container" style="padding-top: 10px;">
+				<h3>IR beam sensor:</h3>
+				<div class="logging_window">
+					<pre id="beam_output" ></pre>
+				</div>
+			</div>
+
+			<div class="container" style="padding-top: 10px;">
+				<h3>PIR motion sensor:</h3>
+				<div class="logging_window">
+					<pre id="PIR_output" ></pre>
+				</div>
+			</div>
+
+			<div class="container" style="padding-top: 10px;">
+				<p><small class="text-body-secondary">Full logs can be accessed as files saved in <i>~/captured/logs/</i> directory.</small></p>
+			</div>
+		</center>
+	</div>
+</body>
+</html>

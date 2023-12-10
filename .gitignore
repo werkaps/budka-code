@@ -1,0 +1,5 @@
+__pycache__/
+captured/photos/*
+captured/videos/*
+captured/logs/IR_beam/*
+captured/logs/PIR_recording/*
